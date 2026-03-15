@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件离线下载服务 v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --primary-color: #007bff;
+            --primary-hover: #0069d9;
+            --text-color: #212529;
+            --text-muted: #6c757d;
+            --border-color: #e9ecef;
+            --input-bg: #fdfdff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.05);
+            --border-radius: 12px;
+            --transition-speed: 0.3s;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e8eaed;
+            --text-muted: #969ba1;
+            --border-color: #3a3f44;
+            --input-bg: #2a2a2e;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 24px;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .theme-switcher {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        .theme-switcher .feather-sun { display: none; }
+        .theme-switcher .feather-moon { display: block; }
+
+        [data-theme="dark"] .theme-switcher .feather-sun { display: block; }
+        [data-theme="dark"] .theme-switcher .feather-moon { display: none; }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .header p {
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 28px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 120px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s, box-shadow 0.2s, background-color var(--transition-speed);
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+        }
+        
+        .input-group {
+            position: relative;
+            margin-top: 16px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s, box-shadow 0.2s, background-color var(--transition-speed);
+        }
+
+        .input-group input:focus {
+             outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+        }
+
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .task-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .task-list-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .task-count {
+            background: var(--border-color);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .task-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.2s, border-color 0.2s, background-color var(--transition-speed);
+        }
+        
+        .task-item:hover {
+            border-color: #dbe4ff;
+        }
+        [data-theme="dark"] .task-item:hover {
+            border-color: #4a5058;
+            background-color: #242424;
+        }
+
+
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .task-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+            word-break: break-all;
+        }
+        
+        .task-url {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            word-break: break-all;
+            opacity: 0.8;
+        }
+
+        .task-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-pending { background: #fffbeb; color: #f59e0b; }
+        .status-downloading { background: #eff6ff; color: #3b82f6; }
+        .status-completed { background: #f0fdf4; color: #22c55e; }
+        .status-failed { background: #fff1f2; color: #ef4444; }
+
+        [data-theme="dark"] .status-pending { background: #3b2e15; color: #f59e0b; }
+        [data-theme="dark"] .status-downloading { background: #1e293b; color: #60a5fa; }
+        [data-theme="dark"] .status-completed { background: #162a22; color: #4ade80; }
+        [data-theme="dark"] .status-failed { background: #3f2227; color: #f87171; }
+
+
+        .task-progress {
+            margin: 16px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: background-color var(--transition-speed);
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+            background-color: var(--primary-color);
+        }
+        
+        .fill-pending { background-color: #f59e0b; }
+        .fill-downloading { background-color: #3b82f6; }
+        .fill-completed { background-color: #22c55e; }
+        .fill-failed { background-color: #ef4444; }
+
+        .task-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .task-info-left {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .speed-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #3b82f6;
+            font-weight: 500;
+        }
+
+        [data-theme="dark"] .speed-tag {
+            color: #60a5fa;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background: #0d6efd; color: white; border-color: #0d6efd; }
+        .btn-primary:hover { background: #0b5ed7; border-color: #0b5ed7; }
+        
+        .btn-success { background: #198754; color: white; border-color: #198754; }
+        .btn-success:hover { background: #157347; border-color: #157347; }
+
+        .btn-danger { background: #dc3545; color: white; border-color: #dc3545;}
+        .btn-danger:hover { background: #bb2d3b; border-color: #bb2d3b;}
+        
+        .btn-secondary { background: #6c757d; color: white; border-color: #6c757d;}
+        .btn-secondary:hover { background: #5c636a; border-color: #5c636a;}
+
+        .btn-light { background: #f8f9fa; color: #212529; border-color: #dee2e6; }
+        .btn-light:hover { background: #e9ecef; }
+        
+        [data-theme="dark"] .btn-light {
+            background-color: #3a3f44;
+            color: #e8eaed;
+            border-color: #4a5058;
+        }
+        [data-theme="dark"] .btn-light:hover {
+            background-color: #4a5058;
+            border-color: #5a6066;
+        }
+
+        .link-box { display: flex; gap: 8px; margin-top: 16px; }
+        
+        .link-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            background: var(--input-bg);
+            color: var(--primary-color);
+            font-weight: 500;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
+        }
+
+    </style>
+</head>
+<body>
+    <button class="theme-switcher" id="theme-switcher" aria-label="切换深色模式">
+        <i data-feather="moon"></i>
+        <i data-feather="sun"></i>
+    </button>
+
+    <div class="container">
+        <header class="header">
+            <h1><i data-feather="download-cloud"></i>文件离线下载</h1>
+            <p>输入链接，将文件高速缓存至云端，随时取用。</p>
+        </header>
+
+        <section class="card">
+            <h2 class="form-title"><i data-feather="plus-circle"></i> 添加新的下载任务</h2>
+            <textarea class="url-input" placeholder="粘贴文件 URL（支持多个，每行一个）&#10;例如:&#10;https://example.com/big-file.zip&#10;https://example.com/document.pdf"></textarea>
+            <div class="input-group">
+                <input type="text" placeholder="自定义文件名 (可选)">
+            </div>
+            <button class="submit-btn"><i data-feather="plus"></i> 立即提交</button>
+        </section>
+
+        <section class="card">
+            <div class="task-list-header">
+                <h2 class="task-list-title">任务列表</h2>
+                <span class="task-count">4 个任务</span>
+            </div>
+
+            <!-- Task 1: Downloading -->
+            <article class="task-item">
+                <header class="task-header">
+                    <div>
+                        <h3 class="task-name">ubuntu-22.04-desktop-amd64.iso</h3>
+                        <p class="task-url">https://releases.ubuntu.com/22.04/ubuntu-22.04-desktop-amd64.iso</p>
+                    </div>
+                    <span class="task-status status-downloading"><i data-feather="arrow-down"></i>下载中</span>
+                </header>
+                <div class="task-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill fill-downloading" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="task-info">
+                    <div class="task-info-left">
+                        <span>2.1 GB / 4.7 GB</span>
+                        <span class="speed-tag"><i data-feather="zap" width="14" height="14"></i> 12.5 MB/s</span>
+                    </div>
+                    <span>45%</span>
+                </div>
+                <div class="task-actions">
+                    <button class="btn btn-danger"><i data-feather="pause"></i> 暂停</button>
+                    <button class="btn btn-secondary"><i data-feather="x"></i> 取消</button>
+                </div>
+            </article>
+
+            <!-- Task 2: Pending -->
+            <article class="task-item">
+                <header class="task-header">
+                    <div>
+                        <h3 class="task-name">node-v20.10.0-linux-x64.tar.gz</h3>
+                        <p class="task-url">https://nodejs.org/dist/v20.10.0/node-v20.10.0-linux-x64.tar.gz</p>
+                    </div>
+                    <span class="task-status status-pending"><i data-feather="clock"></i>等待中</span>
+                </header>
+                <div class="task-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill fill-pending" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="task-info"><span>0 B / 30 MB</span><span>0%</span></div>
+                <div class="task-actions">
+                    <button class="btn btn-secondary"><i data-feather="x"></i> 取消</button>
+                </div>
+            </article>
+
+            <!-- Task 3: Completed -->
+            <article class="task-item">
+                <header class="task-header">
+                    <div>
+                        <h3 class="task-name">VSCode-darwin-stable.zip</h3>
+                        <p class="task-url">https://update.code.visualstudio.com/latest/darwin-stable/zip</p>
+                    </div>
+                    <span class="task-status status-completed"><i data-feather="check-circle"></i>已完成</span>
+                </header>
+                <div class="task-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill fill-completed" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="task-info"><span>95.2 MB / 95.2 MB</span><span>100%</span></div>
+                <div class="link-box">
+                    <input type="text" class="link-input" value="https://download.local/files/vscode.zip" readonly>
+                    <button class="btn btn-light"><i data-feather="copy"></i> 复制</button>
+                    <button class="btn btn-primary"><i data-feather="download"></i> 下载</button>
+                </div>
+            </article>
+
+            <!-- Task 4: Failed -->
+            <article class="task-item">
+                <header class="task-header">
+                    <div>
+                        <h3 class="task-name">large-file-that-does-not-exist.zip</h3>
+                        <p class="task-url">https://example.com/not-found-file.zip</p>
+                    </div>
+                    <span class="task-status status-failed"><i data-feather="alert-triangle"></i>失败</span>
+                </header>
+                <div class="task-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill fill-failed" style="width: 30%"></div>
+                    </div>
+                </div>
+                <div class="task-info">
+                    <div class="task-info-left">
+                        <span>30 MB / 100 MB</span>
+                        <span style="color: #ef4444; font-weight: 500;">错误: 404 Not Found</span>
+                    </div>
+                    <span>30%</span>
+                </div>
+                <div class="task-actions">
+                    <button class="btn btn-primary"><i data-feather="refresh-cw"></i> 重试</button>
+                    <button class="btn btn-secondary"><i data-feather="trash-2"></i> 删除</button>
+                </div>
+            </article>
+        </section>
+    </div>
+    <script>
+        feather.replace();
+
+        const themeSwitcher = document.getElementById('theme-switcher');
+        const doc = document.documentElement;
+
+        const applyTheme = (theme) => {
+            doc.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        };
+
+        const toggleTheme = () => {
+            const currentTheme = doc.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        };
+
+        themeSwitcher.addEventListener('click', toggleTheme);
+
+        // On page load, apply the saved theme or system preference
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme) {
+            applyTheme(savedTheme);
+        } else if (prefersDark) {
+            applyTheme('dark');
+        } else {
+            applyTheme('light');
+        }
+    </script>
+</body>
+</html>

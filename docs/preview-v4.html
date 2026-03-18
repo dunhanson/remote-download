@@ -435,7 +435,7 @@
         <section class="card">
             <div class="task-list-header">
                 <h2 class="task-list-title">任务列表</h2>
-                <span class="task-count">显示 3/12 个任务</span>
+                <span class="task-count">显示 5/12 个任务</span>
             </div>
 
             <!-- Task 1: Downloading -->
@@ -464,25 +464,23 @@
                 </div>
             </article>
 
-            <!-- Task 2: Completed -->
+            <!-- Task 2: Pending -->
             <article class="task-item">
                 <header class="task-header">
                     <div>
-                        <h3 class="task-name">go1.22.0.darwin-arm64.tar.gz</h3>
-                        <p class="task-url">https://go.dev/dl/go1.22.0.darwin-arm64.tar.gz</p>
+                        <h3 class="task-name">hugo-extended_0.123.0_linux-amd64.tar.gz</h3>
+                        <p class="task-url">https://github.com/gohugoio/hugo/releases/download/v0.123.0/hugo-extended_0.123.0_linux-amd64.tar.gz</p>
                     </div>
-                    <span class="task-status status-completed"><i data-feather="check-circle"></i>已完成</span>
+                    <span class="task-status status-pending"><i data-feather="clock"></i>挂起中</span>
                 </header>
                 <div class="task-progress">
                     <div class="progress-bar">
-                        <div class="progress-fill fill-completed" style="width: 100%"></div>
+                        <div class="progress-fill fill-pending" style="width: 0%"></div>
                     </div>
                 </div>
-                <div class="task-info"><span>101.3 MB / 101.3 MB</span><span>100%</span></div>
-                <div class="link-box">
-                    <input type="text" class="link-input" value="https://download.local/files/go1.22.0.darwin-arm64.tar.gz" readonly>
-                    <button class="btn btn-light"><i data-feather="copy"></i> 复制</button>
-                    <button class="btn btn-primary"><i data-feather="download"></i> 下载</button>
+                <div class="task-info"><span>0 B / 28.5 MB</span><span>0%</span></div>
+                <div class="task-actions">
+                    <button class="btn btn-secondary"><i data-feather="x"></i> 取消</button>
                 </div>
             </article>
 
@@ -510,6 +508,50 @@
                 <div class="task-actions">
                     <button class="btn btn-primary"><i data-feather="refresh-cw"></i> 重试</button>
                     <button class="btn btn-danger"><i data-feather="trash-2"></i> 删除</button>
+                </div>
+            </article>
+
+            <!-- Task 4: Completed -->
+            <article class="task-item">
+                <header class="task-header">
+                    <div>
+                        <h3 class="task-name">go1.22.0.darwin-arm64.tar.gz</h3>
+                        <p class="task-url">https://go.dev/dl/go1.22.0.darwin-arm64.tar.gz</p>
+                    </div>
+                    <span class="task-status status-completed"><i data-feather="check-circle"></i>已完成</span>
+                </header>
+                <div class="task-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill fill-completed" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="task-info"><span>101.3 MB / 101.3 MB</span><span>100%</span></div>
+                <div class="link-box">
+                    <input type="text" class="link-input" value="https://download.local/files/go1.22.0.darwin-arm64.tar.gz" readonly>
+                    <button class="btn btn-light"><i data-feather="copy"></i> 复制</button>
+                    <button class="btn btn-primary"><i data-feather="download"></i> 下载</button>
+                </div>
+            </article>
+
+            <!-- Task 5: Completed 2 -->
+            <article class="task-item">
+                <header class="task-header">
+                    <div>
+                        <h3 class="task-name">docker-desktop-4.28.0-amd64.dmg</h3>
+                        <p class="task-url">https://desktop.docker.com/main/main/arm64/Docker.dmg</p>
+                    </div>
+                    <span class="task-status status-completed"><i data-feather="check-circle"></i>已完成</span>
+                </header>
+                <div class="task-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill fill-completed" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="task-info"><span>651.3 MB / 651.3 MB</span><span>100%</span></div>
+                <div class="link-box">
+                    <input type="text" class="link-input" value="https://download.local/files/docker-desktop-4.28.0-amd64.dmg" readonly>
+                    <button class="btn btn-light"><i data-feather="copy"></i> 复制</button>
+                    <button class="btn btn-primary"><i data-feather="download"></i> 下载</button>
                 </div>
             </article>
 

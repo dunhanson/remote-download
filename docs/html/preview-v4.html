@@ -412,6 +412,15 @@
             color: white;
         }
 
+        .task-item-hidden {
+            display: none;
+        }
+
+        .load-more-btn.expanded {
+            background: var(--primary-color);
+            color: white;
+        }
+
     </style>
 </head>
 <body>
@@ -435,7 +444,7 @@
         <section class="card">
             <div class="task-list-header">
                 <h2 class="task-list-title">任务列表</h2>
-                <span class="task-count">显示 5/12 个任务</span>
+                <span class="task-count">显示 3/5 个任务</span>
             </div>
 
             <!-- Task 1: Downloading -->
@@ -512,7 +521,7 @@
             </article>
 
             <!-- Task 4: Completed -->
-            <article class="task-item">
+            <article class="task-item task-item-hidden">
                 <header class="task-header">
                     <div>
                         <h3 class="task-name">go1.22.0.darwin-arm64.tar.gz</h3>
@@ -534,7 +543,7 @@
             </article>
 
             <!-- Task 5: Completed 2 -->
-            <article class="task-item">
+            <article class="task-item task-item-hidden">
                 <header class="task-header">
                     <div>
                         <h3 class="task-name">docker-desktop-4.28.0-amd64.dmg</h3>
@@ -556,7 +565,7 @@
             </article>
 
             <div class="load-more">
-                <button class="load-more-btn"><i data-feather="chevrons-down"></i> 查看更多</button>
+                <button class="load-more-btn" id="load-more-btn"><i data-feather="chevrons-down"></i> 查看更多</button>
             </div>
         </section>
     </div>
@@ -590,6 +599,25 @@
         } else {
             applyTheme('light');
         }
+
+        // 展开/收起更多任务
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const taskCount = document.querySelector('.task-count');
+        const hiddenTasks = document.querySelectorAll('.task-item-hidden');
+        let isExpanded = false;
+
+        loadMoreBtn.addEventListener('click', () => {
+            isExpanded = !isExpanded;
+            hiddenTasks.forEach(task => {
+                task.style.display = isExpanded ? 'block' : 'none';
+            });
+            loadMoreBtn.classList.toggle('expanded', isExpanded);
+            loadMoreBtn.innerHTML = isExpanded
+                ? '<i data-feather="chevrons-up"></i> 收起'
+                : '<i data-feather="chevrons-down"></i> 查看更多';
+            taskCount.textContent = isExpanded ? '显示 5/5 个任务' : '显示 3/5 个任务';
+            feather.replace();
+        });
     </script>
 </body>
 </html>

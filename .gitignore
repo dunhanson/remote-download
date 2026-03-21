@@ -13,3 +13,11 @@ npm-debug.log*
 *.sw?
 .env
 .env.local
+.env.*.local
+.nuxt/
+.output/
+data/
+storage/
+*.db
+*.sqlite
+*.sqlite3

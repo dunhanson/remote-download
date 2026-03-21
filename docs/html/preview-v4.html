@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -66,11 +65,19 @@
             transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
-        .theme-switcher .feather-sun { display: none; }
-        .theme-switcher .feather-moon { display: block; }
+        .theme-switcher svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-color);
+            stroke-width: 2;
+            fill: none;
+        }
 
-        [data-theme="dark"] .theme-switcher .feather-sun { display: block; }
-        [data-theme="dark"] .theme-switcher .feather-moon { display: none; }
+        .theme-switcher .icon-sun { display: none; }
+        .theme-switcher .icon-moon { display: block; }
+
+        [data-theme="dark"] .theme-switcher .icon-sun { display: block; }
+        [data-theme="dark"] .theme-switcher .icon-moon { display: none; }
 
         .container {
             max-width: 800px;
@@ -92,6 +99,14 @@
             font-size: 32px;
             font-weight: 700;
             color: var(--text-color);
+        }
+
+        .header h1 svg {
+            width: 36px;
+            height: 36px;
+            stroke: var(--primary-color);
+            stroke-width: 2;
+            fill: none;
         }
 
         .header p {
@@ -119,6 +134,14 @@
             gap: 8px;
         }
 
+        .form-title svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--primary-color);
+            stroke-width: 2;
+            fill: none;
+        }
+
         .url-input {
             width: 100%;
             padding: 12px 16px;
@@ -130,6 +153,7 @@
             background-color: var(--input-bg);
             color: var(--text-color);
             transition: border-color 0.2s, box-shadow 0.2s, background-color var(--transition-speed);
+            font-family: inherit;
         }
 
         .url-input:focus {
@@ -137,12 +161,12 @@
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
         }
-        
+
         .input-group {
             position: relative;
             margin-top: 16px;
         }
-        
+
         .input-group input {
             width: 100%;
             padding: 12px 16px;
@@ -152,14 +176,14 @@
             background-color: var(--input-bg);
             color: var(--text-color);
             transition: border-color 0.2s, box-shadow 0.2s, background-color var(--transition-speed);
+            font-family: inherit;
         }
 
         .input-group input:focus {
-             outline: none;
+            outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
         }
-
 
         .submit-btn {
             width: 100%;
@@ -177,6 +201,15 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            font-family: inherit;
+        }
+
+        .submit-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
         }
 
         .submit-btn:hover {
@@ -187,6 +220,12 @@
 
         .submit-btn:active {
             transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .task-list-header {
@@ -218,15 +257,15 @@
             margin-bottom: 16px;
             transition: box-shadow 0.2s, border-color 0.2s, background-color var(--transition-speed);
         }
-        
+
         .task-item:hover {
             border-color: #dbe4ff;
         }
+
         [data-theme="dark"] .task-item:hover {
             border-color: #4a5058;
             background-color: #242424;
         }
-
 
         .task-item:last-child {
             margin-bottom: 0;
@@ -245,7 +284,7 @@
             color: var(--text-color);
             word-break: break-all;
         }
-        
+
         .task-url {
             font-size: 12px;
             color: var(--text-muted);
@@ -263,8 +302,16 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            flex-shrink: 0;
         }
-        
+
+        .task-status svg {
+            width: 14px;
+            height: 14px;
+            stroke-width: 2;
+            fill: none;
+        }
+
         .status-pending { background: #fffbeb; color: #f59e0b; }
         .status-downloading { background: #eff6ff; color: #3b82f6; }
         .status-completed { background: #f0fdf4; color: #22c55e; }
@@ -274,7 +321,6 @@
         [data-theme="dark"] .status-downloading { background: #1e293b; color: #60a5fa; }
         [data-theme="dark"] .status-completed { background: #162a22; color: #4ade80; }
         [data-theme="dark"] .status-failed { background: #3f2227; color: #f87171; }
-
 
         .task-progress {
             margin: 16px 0;
@@ -292,9 +338,8 @@
             height: 100%;
             border-radius: 4px;
             transition: width 0.4s ease;
-            background-color: var(--primary-color);
         }
-        
+
         .fill-pending { background-color: #f59e0b; }
         .fill-downloading { background-color: #3b82f6; }
         .fill-completed { background-color: #22c55e; }
@@ -314,7 +359,7 @@
             gap: 16px;
             align-items: center;
         }
-        
+
         .speed-tag {
             display: inline-flex;
             align-items: center;
@@ -345,23 +390,32 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn svg {
+            width: 14px;
+            height: 14px;
+            stroke-width: 2;
+            fill: none;
         }
 
         .btn-primary { background: #0d6efd; color: white; border-color: #0d6efd; }
         .btn-primary:hover { background: #0b5ed7; border-color: #0b5ed7; }
-        
+
         .btn-success { background: #198754; color: white; border-color: #198754; }
         .btn-success:hover { background: #157347; border-color: #157347; }
 
         .btn-danger { background: #dc3545; color: white; border-color: #dc3545;}
         .btn-danger:hover { background: #bb2d3b; border-color: #bb2d3b;}
-        
+
         .btn-secondary { background: #6c757d; color: white; border-color: #6c757d;}
         .btn-secondary:hover { background: #5c636a; border-color: #5c636a;}
 
         .btn-light { background: #f8f9fa; color: #212529; border-color: #dee2e6; }
         .btn-light:hover { background: #e9ecef; }
-        
+
         [data-theme="dark"] .btn-light {
             background-color: #3a3f44;
             color: #e8eaed;
@@ -372,8 +426,12 @@
             border-color: #5a6066;
         }
 
-        .link-box { display: flex; gap: 8px; margin-top: 16px; }
-        
+        .link-box {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
         .link-input {
             flex: 1;
             padding: 8px 12px;
@@ -383,6 +441,7 @@
             background: var(--input-bg);
             color: var(--primary-color);
             font-weight: 500;
+            font-family: inherit;
             transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
         }
 
@@ -405,6 +464,15 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-family: inherit;
+        }
+
+        .load-more-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
         }
 
         .load-more-btn:hover {
@@ -412,212 +480,544 @@
             color: white;
         }
 
-        .task-item-hidden {
-            display: none;
-        }
-
         .load-more-btn.expanded {
             background: var(--primary-color);
             color: white;
         }
 
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--border-color);
+            stroke-width: 1.5;
+            fill: none;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            font-size: 14px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        .toast-success svg { stroke: #22c55e; }
+        .toast-error svg { stroke: #ef4444; }
+        .toast-info svg { stroke: #3b82f6; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
     <button class="theme-switcher" id="theme-switcher" aria-label="切换深色模式">
-        <i data-feather="moon"></i>
-        <i data-feather="sun"></i>
+        <svg class="icon-sun" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
     </button>
 
     <div class="container">
         <header class="header">
-            <h1><i data-feather="download-cloud"></i>文件离线下载</h1>
+            <h1>
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                文件离线下载
+            </h1>
             <p>输入链接，将文件高速缓存至云端，随时取用。</p>
         </header>
 
         <section class="card">
-            <h2 class="form-title"><i data-feather="plus-circle"></i> 添加新的下载任务</h2>
-            <textarea class="url-input" placeholder="粘贴文件 URL（支持多个，每行一个）&#10;例如:&#10;https://example.com/big-file.zip&#10;https://example.com/document.pdf"></textarea>
-            <button class="submit-btn"><i data-feather="plus"></i> 立即提交</button>
+            <h2 class="form-title">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="16"/>
+                    <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                添加新的下载任务
+            </h2>
+            <textarea id="url-input" class="url-input" placeholder="粘贴文件 URL（支持多个，每行一个）&#10;例如:&#10;https://example.com/big-file.zip&#10;https://example.com/document.pdf"></textarea>
+            <button class="submit-btn" id="submit-btn">
+                <svg viewBox="0 0 24 24">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                立即提交
+            </button>
         </section>
 
         <section class="card">
             <div class="task-list-header">
                 <h2 class="task-list-title">任务列表</h2>
-                <span class="task-count">显示 3/5 个任务</span>
+                <span class="task-count" id="task-count">显示 0/0 个任务</span>
             </div>
 
-            <!-- Task 1: Downloading -->
-            <article class="task-item">
-                <header class="task-header">
-                    <div>
-                        <h3 class="task-name">ubuntu-22.04-desktop-amd64.iso</h3>
-                        <p class="task-url">https://releases.ubuntu.com/22.04/ubuntu-22.04-desktop-amd64.iso</p>
-                    </div>
-                    <span class="task-status status-downloading"><i data-feather="arrow-down"></i>下载中</span>
-                </header>
-                <div class="task-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill fill-downloading" style="width: 45%"></div>
-                    </div>
-                </div>
-                <div class="task-info">
-                    <div class="task-info-left">
-                        <span>2.1 GB / 4.7 GB</span>
-                        <span class="speed-tag"><i data-feather="zap" width="14" height="14"></i> 12.5 MB/s</span>
-                    </div>
-                    <span>45%</span>
-                </div>
-                <div class="task-actions">
-                    <button class="btn btn-secondary"><i data-feather="x"></i> 取消</button>
-                </div>
-            </article>
+            <div id="task-list-container"></div>
 
-            <!-- Task 2: Pending -->
-            <article class="task-item">
-                <header class="task-header">
-                    <div>
-                        <h3 class="task-name">hugo-extended_0.123.0_linux-amd64.tar.gz</h3>
-                        <p class="task-url">https://github.com/gohugoio/hugo/releases/download/v0.123.0/hugo-extended_0.123.0_linux-amd64.tar.gz</p>
-                    </div>
-                    <span class="task-status status-pending"><i data-feather="clock"></i>挂起中</span>
-                </header>
-                <div class="task-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill fill-pending" style="width: 0%"></div>
-                    </div>
-                </div>
-                <div class="task-info"><span>0 B / 28.5 MB</span><span>0%</span></div>
-                <div class="task-actions">
-                    <button class="btn btn-secondary"><i data-feather="x"></i> 取消</button>
-                </div>
-            </article>
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <p>暂无下载任务，添加一个开始吧</p>
+            </div>
 
-            <!-- Task 3: Failed -->
-            <article class="task-item">
-                <header class="task-header">
-                    <div>
-                        <h3 class="task-name">node-v22.12.0-linux-x64.tar.xz</h3>
-                        <p class="task-url">https://nodejs.org/dist/v22.12.0/node-v22.12.0-linux-x64.tar.xz</p>
-                    </div>
-                    <span class="task-status status-failed"><i data-feather="alert-triangle"></i>失败</span>
-                </header>
-                <div class="task-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill fill-failed" style="width: 0%"></div>
-                    </div>
-                </div>
-                <div class="task-info">
-                    <div class="task-info-left">
-                        <span>0 B / 47.3 MB</span>
-                        <span style="color: #ef4444; font-weight: 500;">错误: 连接超时</span>
-                    </div>
-                    <span>0%</span>
-                </div>
-                <div class="task-actions">
-                    <button class="btn btn-primary"><i data-feather="refresh-cw"></i> 重试</button>
-                    <button class="btn btn-danger"><i data-feather="trash-2"></i> 删除</button>
-                </div>
-            </article>
-
-            <!-- Task 4: Completed -->
-            <article class="task-item task-item-hidden">
-                <header class="task-header">
-                    <div>
-                        <h3 class="task-name">go1.22.0.darwin-arm64.tar.gz</h3>
-                        <p class="task-url">https://go.dev/dl/go1.22.0.darwin-arm64.tar.gz</p>
-                    </div>
-                    <span class="task-status status-completed"><i data-feather="check-circle"></i>已完成</span>
-                </header>
-                <div class="task-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill fill-completed" style="width: 100%"></div>
-                    </div>
-                </div>
-                <div class="task-info"><span>101.3 MB / 101.3 MB</span><span>100%</span></div>
-                <div class="link-box">
-                    <input type="text" class="link-input" value="https://download.local/files/go1.22.0.darwin-arm64.tar.gz" readonly>
-                    <button class="btn btn-light"><i data-feather="copy"></i> 复制</button>
-                    <button class="btn btn-primary"><i data-feather="download"></i> 下载</button>
-                </div>
-            </article>
-
-            <!-- Task 5: Completed 2 -->
-            <article class="task-item task-item-hidden">
-                <header class="task-header">
-                    <div>
-                        <h3 class="task-name">docker-desktop-4.28.0-amd64.dmg</h3>
-                        <p class="task-url">https://desktop.docker.com/main/main/arm64/Docker.dmg</p>
-                    </div>
-                    <span class="task-status status-completed"><i data-feather="check-circle"></i>已完成</span>
-                </header>
-                <div class="task-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill fill-completed" style="width: 100%"></div>
-                    </div>
-                </div>
-                <div class="task-info"><span>651.3 MB / 651.3 MB</span><span>100%</span></div>
-                <div class="link-box">
-                    <input type="text" class="link-input" value="https://download.local/files/docker-desktop-4.28.0-amd64.dmg" readonly>
-                    <button class="btn btn-light"><i data-feather="copy"></i> 复制</button>
-                    <button class="btn btn-primary"><i data-feather="download"></i> 下载</button>
-                </div>
-            </article>
-
-            <div class="load-more">
-                <button class="load-more-btn" id="load-more-btn"><i data-feather="chevrons-down"></i> 查看更多</button>
+            <div class="load-more" id="load-more-container" style="display: none;">
+                <button class="load-more-btn" id="load-more-btn">
+                    <svg viewBox="0 0 24 24" id="expand-icon">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                    <span id="expand-text">查看更多</span>
+                </button>
             </div>
         </section>
     </div>
+
     <script>
-        feather.replace();
+    (function() {
+        // ============================================================
+        // 独立运行的前端模拟代码（无后端依赖）
+        // 功能：主题切换、添加任务、删除、重试、复制链接、展开收起
+        // ============================================================
 
-        const themeSwitcher = document.getElementById('theme-switcher');
-        const doc = document.documentElement;
-
-        const applyTheme = (theme) => {
-            doc.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-        };
-
-        const toggleTheme = () => {
-            const currentTheme = doc.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            applyTheme(newTheme);
-        };
-
-        themeSwitcher.addEventListener('click', toggleTheme);
-
-        // On page load, apply the saved theme or system preference
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-        if (savedTheme) {
-            applyTheme(savedTheme);
-        } else if (prefersDark) {
-            applyTheme('dark');
-        } else {
-            applyTheme('light');
+        // SVG 图标
+        const ICONS = {
+            clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+            'arrow-down': '<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>',
+            'check-circle': '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+            'alert-triangle': '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+            x: '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+            'refresh-cw': '<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
+            'trash-2': '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+            copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+            download: '<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+            'chevrons-down': '<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>',
+            'chevrons-up': '<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>',
+            zap: '<svg viewBox="0 0 24 24" width="14" height="14"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
         }
 
-        // 展开/收起更多任务
-        const loadMoreBtn = document.getElementById('load-more-btn');
-        const taskCount = document.querySelector('.task-count');
-        const hiddenTasks = document.querySelectorAll('.task-item-hidden');
-        let isExpanded = false;
+        // 状态标签
+        const STATUS_LABELS = {
+            pending: '挂起中',
+            downloading: '下载中',
+            completed: '已完成',
+            failed: '失败'
+        }
 
-        loadMoreBtn.addEventListener('click', () => {
-            isExpanded = !isExpanded;
-            hiddenTasks.forEach(task => {
-                task.style.display = isExpanded ? 'block' : 'none';
-            });
-            loadMoreBtn.classList.toggle('expanded', isExpanded);
-            loadMoreBtn.innerHTML = isExpanded
-                ? '<i data-feather="chevrons-up"></i> 收起'
-                : '<i data-feather="chevrons-down"></i> 查看更多';
-            taskCount.textContent = isExpanded ? '显示 5/5 个任务' : '显示 3/5 个任务';
-            feather.replace();
-        });
+        // 生成唯一ID
+        const generateId = function() {
+            return Math.random().toString(36).substr(2, 9) + Date.now().toString(36)
+        }
+
+        // 从URL提取文件名
+        const getFileName = function(url) {
+            try {
+                const pathname = new URL(url).pathname
+                const filename = pathname.split('/').pop() || '未知文件'
+                return decodeURIComponent(filename)
+            } catch (e) {
+                return '未知文件'
+            }
+        }
+
+        // 格式化文件大小
+        const formatSize = function(bytes) {
+            if (!bytes || bytes === 0) return '0 B'
+            const k = 1024
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+            const i = Math.floor(Math.log(bytes) / Math.log(k))
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+        }
+
+        // 格式化速度
+        const formatSpeed = function(bytesPerSec) {
+            if (!bytesPerSec) return '0 B/s'
+            const k = 1024
+            const sizes = ['B/s', 'KB/s', 'MB/s', 'GB/s']
+            const i = Math.floor(Math.log(bytesPerSec) / Math.log(k))
+            return parseFloat((bytesPerSec / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+        }
+
+        // 任务数据
+        let tasks = []
+        let isExpanded = false
+        const DISPLAY_COUNT = 3
+
+        // 渲染单个任务项的HTML
+        const renderTaskItem = function(task) {
+            const statusLabel = STATUS_LABELS[task.status]
+            let iconKey = task.status
+            if (task.status === 'pending') iconKey = 'clock'
+            else if (task.status === 'downloading') iconKey = 'arrow-down'
+            else if (task.status === 'completed') iconKey = 'check-circle'
+            else iconKey = 'alert-triangle'
+            const icon = ICONS[iconKey]
+
+            let actionsHtml = ''
+            if (task.status !== 'completed') {
+                if (task.status === 'failed') {
+                    actionsHtml += '<button class="btn btn-primary" data-action="retry" data-id="' + task.id + '">' + ICONS['refresh-cw'] + ' 重试</button>'
+                }
+                actionsHtml += '<button class="btn btn-danger" data-action="delete" data-id="' + task.id + '">' + ICONS['trash-2'] + ' 删除</button>'
+            }
+
+            let linkBoxHtml = ''
+            if (task.status === 'completed' && task.downloadUrl) {
+                linkBoxHtml = '<div class="link-box">' +
+                    '<input type="text" class="link-input" value="' + task.downloadUrl + '" readonly>' +
+                    '<button class="btn btn-light" data-action="copy" data-url="' + encodeURIComponent(task.downloadUrl) + '">' + ICONS.copy + ' 复制</button>' +
+                    '<a href="' + task.downloadUrl + '" class="btn btn-primary" target="_blank">' + ICONS.download + ' 下载</a>' +
+                '</div>'
+            }
+
+            let extraInfo = ''
+            if (task.status === 'downloading') {
+                extraInfo = '<span class="speed-tag">' + ICONS.zap + ' ' + formatSpeed(task.speed) + '</span>'
+            }
+            if (task.status === 'failed' && task.errorMessage) {
+                extraInfo = '<span style="color: #ef4444; font-weight: 500;">错误: ' + task.errorMessage + '</span>'
+            }
+
+            return '<article class="task-item" data-id="' + task.id + '">' +
+                '<header class="task-header">' +
+                    '<div>' +
+                        '<h3 class="task-name">' + task.filename + '</h3>' +
+                        '<p class="task-url">' + task.sourceUrl + '</p>' +
+                    '</div>' +
+                    '<span class="task-status status-' + task.status + '">' + icon + ' ' + statusLabel + '</span>' +
+                '</header>' +
+                '<div class="task-progress">' +
+                    '<div class="progress-bar">' +
+                        '<div class="progress-fill fill-' + task.status + '" style="width: ' + task.percent + '%"></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="task-info">' +
+                    '<div class="task-info-left">' +
+                        '<span>' + formatSize(task.downloaded) + ' / ' + formatSize(task.filesize) + '</span>' +
+                        extraInfo +
+                    '</div>' +
+                    '<span>' + task.percent + '%</span>' +
+                '</div>' +
+                linkBoxHtml +
+                '<div class="task-actions">' + actionsHtml + '</div>' +
+            '</article>'
+        }
+
+        // 渲染整个任务列表
+        const renderTasks = function() {
+            const container = document.getElementById('task-list-container')
+            const emptyState = document.getElementById('empty-state')
+            const loadMoreContainer = document.getElementById('load-more-container')
+            const taskCount = document.getElementById('task-count')
+
+            if (tasks.length === 0) {
+                container.innerHTML = ''
+                emptyState.style.display = 'block'
+                loadMoreContainer.style.display = 'none'
+                taskCount.textContent = '显示 0/0 个任务'
+                return
+            }
+
+            emptyState.style.display = 'none'
+
+            const hasMore = tasks.length > DISPLAY_COUNT
+            loadMoreContainer.style.display = hasMore ? 'flex' : 'none'
+
+            const displayedTasks = isExpanded ? tasks : tasks.slice(0, DISPLAY_COUNT)
+            taskCount.textContent = '显示 ' + displayedTasks.length + '/' + tasks.length + ' 个任务'
+
+            container.innerHTML = displayedTasks.map(renderTaskItem).join('')
+        }
+
+        // Toast 提示
+        let toastTimeout = null
+        const showToast = function(message, type) {
+            type = type || 'info'
+            let toast = document.querySelector('.toast')
+            if (toast) toast.remove()
+            if (toastTimeout) clearTimeout(toastTimeout)
+
+            const iconMap = {
+                success: ICONS['check-circle'],
+                error: ICONS['alert-triangle'],
+                info: ICONS['arrow-down']
+            }
+
+            toast = document.createElement('div')
+            toast.className = 'toast toast-' + type
+            toast.innerHTML = (iconMap[type] || iconMap.info) + ' ' + message
+            document.body.appendChild(toast)
+
+            toastTimeout = setTimeout(function() {
+                if (toast.parentNode) toast.parentNode.removeChild(toast)
+            }, 3000)
+        }
+
+        // 提交任务
+        const handleSubmit = function() {
+            const input = document.getElementById('url-input')
+            const raw = input.value.trim()
+
+            if (!raw) {
+                showToast('请输入 URL', 'error')
+                return
+            }
+
+            const urls = raw.split('\n')
+                .map(function(line) { return line.trim() })
+                .filter(function(line) { return line.length > 0 })
+                .filter(function(line) {
+                    try { new URL(line); return true } catch { return false }
+                })
+
+            if (urls.length === 0) {
+                showToast('请输入有效的 URL', 'error')
+                return
+            }
+
+            // 创建新任务
+            const newTasks = urls.map(function(url) {
+                return {
+                    id: generateId(),
+                    sourceUrl: url,
+                    filename: getFileName(url),
+                    filesize: 0,
+                    downloaded: 0,
+                    status: 'pending',
+                    speed: 0,
+                    percent: 0,
+                    errorMessage: '',
+                    retryCount: 0,
+                    createdAt: Date.now(),
+                    downloadUrl: null
+                }
+            })
+
+            // 随机决定一个任务失败作为演示
+            if (newTasks.length > 0 && Math.random() > 0.6) {
+                const failIndex = Math.floor(Math.random() * newTasks.length)
+                newTasks[failIndex].status = 'failed'
+                newTasks[failIndex].errorMessage = '连接超时'
+            }
+
+            tasks = newTasks.concat(tasks)
+            input.value = ''
+            renderTasks()
+            showToast('已添加 ' + newTasks.length + ' 个任务', 'success')
+        }
+
+        // 删除任务
+        const handleDelete = function(taskId) {
+            if (!confirm('确定要删除这个任务吗？')) return
+            tasks = tasks.filter(function(t) { return t.id !== taskId })
+            renderTasks()
+            showToast('任务已删除', 'info')
+        }
+
+        // 重试任务
+        const handleRetry = function(taskId) {
+            const task = tasks.find(function(t) { return t.id === taskId })
+            if (task) {
+                task.status = 'pending'
+                task.downloaded = 0
+                task.percent = 0
+                task.errorMessage = ''
+                task.filesize = Math.floor(Math.random() * 500 * 1024 * 1024) + 50 * 1024 * 1024
+                renderTasks()
+                showToast('任务已重新加入队列', 'info')
+            }
+        }
+
+        // 复制链接
+        const handleCopy = function(url) {
+            url = decodeURIComponent(url)
+            navigator.clipboard.writeText(url).then(function() {
+                showToast('链接已复制', 'success')
+            }).catch(function() {
+                const input = document.createElement('input')
+                input.value = url
+                document.body.appendChild(input)
+                input.select()
+                document.execCommand('copy')
+                document.body.removeChild(input)
+                showToast('链接已复制', 'success')
+            })
+        }
+
+        // 展开/收起
+        const toggleExpand = function() {
+            isExpanded = !isExpanded
+            const btn = document.getElementById('load-more-btn')
+            const expandIcon = document.getElementById('expand-icon')
+            const expandText = document.getElementById('expand-text')
+            const taskCount = document.getElementById('task-count')
+
+            if (isExpanded) {
+                btn.classList.add('expanded')
+                expandIcon.innerHTML = '<polyline points="18 15 12 9 6 15"/>'
+                expandText.textContent = '收起'
+                taskCount.textContent = '显示 ' + tasks.length + '/' + tasks.length + ' 个任务'
+            } else {
+                btn.classList.remove('expanded')
+                expandIcon.innerHTML = '<polyline points="6 9 12 15 18 9"/>'
+                expandText.textContent = '查看更多'
+                taskCount.textContent = '显示 ' + Math.min(DISPLAY_COUNT, tasks.length) + '/' + tasks.length + ' 个任务'
+            }
+
+            // 重新渲染
+            const container = document.getElementById('task-list-container')
+            const displayedTasks = isExpanded ? tasks : tasks.slice(0, DISPLAY_COUNT)
+            container.innerHTML = displayedTasks.map(renderTaskItem).join('')
+        }
+
+        // 模拟下载进度
+        const simulateDownloads = function() {
+            setInterval(function() {
+                tasks.forEach(function(task) {
+                    if (task.status !== 'pending') return
+
+                    // 设置文件大小
+                    if (!task.filesize) {
+                        task.filesize = Math.floor(Math.random() * 500 * 1024 * 1024) + 50 * 1024 * 1024
+                    }
+
+                    // 开始下载
+                    task.status = 'downloading'
+                    const fileSize = task.filesize
+                    const baseSpeed = (Math.random() * 15 + 5) * 1024 * 1024 // 5-20 MB/s
+                    let downloaded = task.downloaded
+
+                    const interval = setInterval(function() {
+                        if (task.status !== 'downloading') {
+                            clearInterval(interval)
+                            return
+                        }
+
+                        const speed = baseSpeed * (0.8 + Math.random() * 0.4)
+                        downloaded += speed * 0.5
+
+                        if (downloaded >= fileSize) {
+                            downloaded = fileSize
+                            task.downloaded = fileSize
+                            task.percent = 100
+                            task.status = 'completed'
+                            task.speed = 0
+                            task.downloadUrl = 'https://download.example.com/' + task.id + '_' + encodeURIComponent(task.filename)
+                            clearInterval(interval)
+                        } else {
+                            task.downloaded = Math.floor(downloaded)
+                            task.percent = Math.floor((downloaded / fileSize) * 100)
+                            task.speed = Math.floor(speed)
+                        }
+
+                        renderTasks()
+                    }, 500)
+                })
+                renderTasks()
+            }, 100)
+        }
+
+        // 初始化主题
+        const initTheme = function() {
+            const savedTheme = localStorage.getItem('theme')
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light')
+            document.documentElement.setAttribute('data-theme', theme)
+        }
+
+        // 事件委托处理按钮点击
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('[data-action]')
+            if (!target) return
+
+            const action = target.getAttribute('data-action')
+            const id = target.getAttribute('data-id')
+
+            if (action === 'delete') {
+                handleDelete(id)
+            } else if (action === 'retry') {
+                handleRetry(id)
+            } else if (action === 'copy') {
+                handleCopy(target.getAttribute('data-url'))
+            }
+        })
+
+        // DOM 加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme()
+
+            // 主题切换
+            document.getElementById('theme-switcher').addEventListener('click', function() {
+                const current = document.documentElement.getAttribute('data-theme')
+                const next = current === 'dark' ? 'light' : 'dark'
+                document.documentElement.setAttribute('data-theme', next)
+                localStorage.setItem('theme', next)
+            })
+
+            // 提交按钮
+            document.getElementById('submit-btn').addEventListener('click', handleSubmit)
+
+            // Ctrl+Enter 提交
+            document.getElementById('url-input').addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    handleSubmit()
+                }
+            })
+
+            // 加载更多
+            document.getElementById('load-more-btn').addEventListener('click', toggleExpand)
+
+            // 启动模拟下载
+            simulateDownloads()
+
+            // 初始渲染
+            renderTasks()
+        })
+    })()
     </script>
 </body>
 </html>

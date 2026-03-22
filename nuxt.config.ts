@@ -29,7 +29,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: '/api'
+      apiBase: '/api',
+      downloadRootPath: '/data/downloads',
+      downloadRelativePath: 'files',
+      publicUrl: 'https://download.example.com'
     }
   }
 })

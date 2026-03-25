@@ -77,8 +77,12 @@ async function startMemoryDownload(taskId: string): Promise<void> {
 
 function getDownloadPath(filename: string): string {
   const config = useRuntimeConfig()
-  const rootPath = (config.public.downloadRootPath as string) || join(process.cwd(), 'storage', 'downloads')
-  const relativePath = (config.public.downloadRelativePath as string) || 'files'
+  const rootPath = process.env.DOWNLOAD_ROOT_PATH 
+    || (config.public.downloadRootPath as string) 
+    || join(process.cwd(), 'storage', 'downloads')
+  const relativePath = process.env.DOWNLOAD_RELATIVE_PATH 
+    || (config.public.downloadRelativePath as string) 
+    || 'files'
   const dir = join(rootPath, relativePath)
 
   if (!existsSync(dir)) {
@@ -94,21 +98,16 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
   updateTaskStatus(taskId, 'downloading')
 
-  const response = await axios({
+  const headResponse = await axios({
     method: 'head',
     url: sourceUrl,
     timeout: 30000
   })
 
-  const filesize = parseInt(response.headers['content-length'] || '0', 10)
+  const filesize = parseInt(headResponse.headers['content-length'] || '0', 10)
   if (filesize > 0) {
     updateTaskFilesize(taskId, filesize)
   }
-
-  const writeStream = createWriteStream(destPath)
-  let downloaded = 0
-  let lastProgressTime = Date.now()
-  let lastDownloaded = 0
 
   const downloadResponse = await axios({
     method: 'get',
@@ -117,8 +116,14 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     timeout: 300000
   })
 
+  const writeStream = createWriteStream(destPath)
+  let downloaded = 0
+  let lastProgressTime = Date.now()
+  let lastDownloaded = 0
+
   downloadResponse.data.on('data', (chunk: Buffer) => {
     downloaded += chunk.length
+    writeStream.write(chunk)
 
     const now = Date.now()
     const elapsed = now - lastProgressTime
@@ -131,16 +136,26 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     }
   })
 
-  downloadResponse.data.pipe(writeStream)
+  downloadResponse.data.on('end', () => {
+    writeStream.end()
+    updateTaskProgress(taskId, downloaded, filesize, 0)
+    updateTaskStatus(taskId, 'completed', undefined, destPath)
+  })
+
+  downloadResponse.data.on('error', (err) => {
+    writeStream.end()
+    updateTaskStatus(taskId, 'failed', err.message)
+  })
+
+  writeStream.on('error', (err) => {
+    updateTaskStatus(taskId, 'failed', err.message)
+  })
 
   return new Promise((resolve, reject) => {
     writeStream.on('finish', () => {
-      updateTaskProgress(taskId, downloaded, filesize, 0)
-      updateTaskStatus(taskId, 'completed', undefined, destPath)
       resolve()
     })
     writeStream.on('error', (err) => {
-      updateTaskStatus(taskId, 'failed', err.message)
       reject(err)
     })
   })

@@ -127,16 +127,22 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
   const writeStream = createWriteStream(destPath)
   let downloaded = 0
 
-  downloadResponse.data.on('data', (chunk: Buffer) => {
-    downloaded += chunk.length
-  })
-
-  downloadResponse.data.pipe(writeStream)
-
   return new Promise((resolve, reject) => {
+    downloadResponse.data.on('data', (chunk: Buffer) => {
+      downloaded += chunk.length
+      writeStream.write(chunk)
+    })
+
     downloadResponse.data.on('end', () => {
       console.log(`[Download] Response stream ended, downloaded: ${downloaded}`)
-      downloadResponse.data.destroy()
+      writeStream.end()
+    })
+
+    downloadResponse.data.on('error', (err) => {
+      console.error(`[Download] Read error: ${err.message}`)
+      writeStream.end()
+      updateTaskStatus(taskId, 'failed', err.message)
+      reject(err)
     })
 
     writeStream.on('finish', () => {
@@ -148,12 +154,6 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
     writeStream.on('error', (err) => {
       console.error(`[Download] Write error: ${err.message}`)
-      updateTaskStatus(taskId, 'failed', err.message)
-      reject(err)
-    })
-
-    downloadResponse.data.on('error', (err) => {
-      console.error(`[Download] Read error: ${err.message}`)
       updateTaskStatus(taskId, 'failed', err.message)
       reject(err)
     })

@@ -5,6 +5,8 @@ import { join, dirname } from 'path'
 import { pipeline } from 'stream/promises'
 import { getTaskById, updateTaskStatus, updateTaskProgress, updateTaskFilesize, incrementRetryCount, resetTaskForRetry } from '../database/tasks'
 import type { ProgressData } from '../types'
+import http from 'http'
+import https from 'https'
 
 let downloadQueue: Queue | null = null
 let downloadWorker: Worker | null = null
@@ -102,6 +104,8 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
   updateTaskStatus(taskId, 'downloading')
 
+  console.log(`[Download] Starting HEAD request: ${sourceUrl}`)
+
   const headResponse = await axios({
     method: 'head',
     url: sourceUrl,
@@ -113,49 +117,65 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     updateTaskFilesize(taskId, filesize)
   }
 
-  console.log(`[Download] Starting download: ${sourceUrl} -> ${destPath}`)
-
-  const downloadResponse = await axios({
-    method: 'get',
-    url: sourceUrl,
-    responseType: 'stream',
-    timeout: 300000
-  })
-
-  console.log(`[Download] Response received`)
-
-  const writeStream = createWriteStream(destPath)
-  let downloaded = 0
+  console.log(`[Download] Starting download: ${sourceUrl} -> ${destPath}, filesize: ${filesize}`)
 
   return new Promise((resolve, reject) => {
-    downloadResponse.data.on('data', (chunk: Buffer) => {
-      downloaded += chunk.length
-      writeStream.write(chunk)
+    const protocol = sourceUrl.startsWith('https') ? https : http
+    let downloaded = 0
+
+    const req = protocol.get(sourceUrl, { timeout: 300000 }, (response) => {
+      const writeStream = createWriteStream(destPath)
+      let lastProgressTime = Date.now()
+      let lastDownloaded = 0
+
+      response.on('data', (chunk: Buffer) => {
+        downloaded += chunk.length
+        writeStream.write(chunk)
+
+        const now = Date.now()
+        const elapsed = now - lastProgressTime
+
+        if (elapsed >= PROGRESS_THROTTLE_MS) {
+          const speed = Math.floor((downloaded - lastDownloaded) / (elapsed / 1000))
+          updateTaskProgress(taskId, downloaded, filesize, speed)
+          lastProgressTime = now
+          lastDownloaded = downloaded
+        }
+      })
+
+      response.on('end', () => {
+        console.log(`[Download] Download completed: ${downloaded} bytes`)
+        writeStream.end()
+        updateTaskProgress(taskId, downloaded, filesize, 0)
+        updateTaskStatus(taskId, 'completed', undefined, destPath)
+        resolve()
+      })
+
+      response.on('error', (err) => {
+        console.error(`[Download] Response error: ${err.message}`)
+        writeStream.end()
+        updateTaskStatus(taskId, 'failed', err.message)
+        reject(err)
+      })
+
+      writeStream.on('error', (err) => {
+        console.error(`[Download] Write error: ${err.message}`)
+        updateTaskStatus(taskId, 'failed', err.message)
+        reject(err)
+      })
     })
 
-    downloadResponse.data.on('end', () => {
-      console.log(`[Download] Response stream ended, downloaded: ${downloaded}`)
-      writeStream.end()
-    })
-
-    downloadResponse.data.on('error', (err) => {
-      console.error(`[Download] Read error: ${err.message}`)
-      writeStream.end()
+    req.on('error', (err) => {
+      console.error(`[Download] Request error: ${err.message}`)
       updateTaskStatus(taskId, 'failed', err.message)
       reject(err)
     })
 
-    writeStream.on('finish', () => {
-      console.log(`[Download] Write finished: ${downloaded} bytes`)
-      updateTaskProgress(taskId, downloaded, filesize, 0)
-      updateTaskStatus(taskId, 'completed', undefined, destPath)
-      resolve()
-    })
-
-    writeStream.on('error', (err) => {
-      console.error(`[Download] Write error: ${err.message}`)
-      updateTaskStatus(taskId, 'failed', err.message)
-      reject(err)
+    req.on('timeout', () => {
+      console.error(`[Download] Request timeout`)
+      req.destroy()
+      updateTaskStatus(taskId, 'failed', 'Request timeout')
+      reject(new Error('Request timeout'))
     })
   })
 }

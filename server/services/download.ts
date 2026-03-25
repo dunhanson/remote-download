@@ -144,7 +144,8 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
       })
 
       response.on('end', () => {
-        console.log(`[Download] Response end event, downloaded: ${downloaded}`)
+        console.log(`[Download] Response end, calling writeStream.end(), downloaded: ${downloaded}`)
+        writeStream.end()
       })
 
       response.on('close', () => {

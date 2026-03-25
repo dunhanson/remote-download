@@ -10,14 +10,25 @@ let downloadWorker: Worker | null = null
 
 const PROGRESS_THROTTLE_MS = 500
 
-export function getDownloadQueue(): Queue {
-  if (downloadQueue) return downloadQueue
+function getConnectionConfig() {
+  const queueDriver = process.env.QUEUE_DRIVER || 'memory'
+  
+  if (queueDriver === 'memory') {
+    return null
+  }
 
-  const connection = {
+  return {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
     maxRetriesPerRequest: null
   }
+}
+
+export function getDownloadQueue(): Queue | null {
+  if (downloadQueue) return downloadQueue
+
+  const connection = getConnectionConfig()
+  if (!connection) return null
 
   downloadQueue = new Queue('download', { connection })
 
@@ -26,6 +37,13 @@ export function getDownloadQueue(): Queue {
 
 export function addDownloadJob(taskId: string): void {
   const queue = getDownloadQueue()
+  
+  if (!queue) {
+    console.log(`[Memory Queue] Job added: ${taskId}`)
+    startMemoryDownload(taskId)
+    return
+  }
+
   queue.add('download', { taskId }, {
     attempts: 3,
     backoff: {
@@ -33,6 +51,28 @@ export function addDownloadJob(taskId: string): void {
       delay: 2000
     }
   })
+}
+
+async function startMemoryDownload(taskId: string): Promise<void> {
+  const task = getTaskById(taskId)
+  if (!task) {
+    console.error(`Task ${taskId} not found`)
+    return
+  }
+
+  const destPath = getDownloadPath(task.filename)
+
+  try {
+    await downloadFile(taskId, task.source_url, destPath)
+    console.log(`[Memory Queue] Download completed: ${taskId}`)
+  } catch (error: any) {
+    console.error(`[Memory Queue] Download failed: ${taskId}`, error.message)
+    const currentTask = getTaskById(taskId)
+    if (currentTask && currentTask.retry_count < currentTask.max_retries) {
+      incrementRetryCount(taskId)
+      setTimeout(() => startMemoryDownload(taskId), 2000)
+    }
+  }
 }
 
 function getDownloadPath(filename: string): string {
@@ -109,10 +149,10 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 export function startWorker(): void {
   if (downloadWorker) return
 
-  const connection = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    maxRetriesPerRequest: null
+  const connection = getConnectionConfig()
+  if (!connection) {
+    console.log('[Worker] Running in memory mode, no BullMQ worker needed')
+    return
   }
 
   downloadWorker = new Worker('download', async (job: Job) => {

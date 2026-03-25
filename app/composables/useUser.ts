@@ -5,12 +5,6 @@ export interface UserInfo {
   loginCount: number
 }
 
-const generateUserId = (): string => {
-  const timestamp = Date.now().toString(36)
-  const randomPart = Math.random().toString(36).substring(2, 10)
-  return timestamp + randomPart
-}
-
 export function useUser() {
   const userId = useState<string | null>('userId', () => null)
   const user = useState<UserInfo | null>('user', () => null)
@@ -41,18 +35,13 @@ export function useUser() {
             user.value = response.data
             localStorage.setItem('userCreatedAt', response.data.createdAt.toString())
             localStorage.setItem('userLoginCount', response.data.loginCount.toString())
+            return
           }
         } catch {
-          const createdAt = parseInt(localStorage.getItem('userCreatedAt') || '0') || Math.floor(Date.now() / 1000)
-          const loginCount = parseInt(localStorage.getItem('userLoginCount') || '1')
-          user.value = {
-            id: storedUserId,
-            createdAt,
-            lastActiveAt: Math.floor(Date.now() / 1000),
-            loginCount
-          }
+          localStorage.removeItem('userId')
+          localStorage.removeItem('userCreatedAt')
+          localStorage.removeItem('userLoginCount')
         }
-        return
       }
 
       const response = await $fetch<{ success: boolean; data: UserInfo }>('/api/user/create')
@@ -65,18 +54,6 @@ export function useUser() {
       }
     } catch (error) {
       console.error('Failed to initialize user:', error)
-      const newUserId = generateUserId()
-      userId.value = newUserId
-      localStorage.setItem('userId', newUserId)
-      const now = Math.floor(Date.now() / 1000)
-      localStorage.setItem('userCreatedAt', now.toString())
-      localStorage.setItem('userLoginCount', '1')
-      user.value = {
-        id: newUserId,
-        createdAt: now,
-        lastActiveAt: now,
-        loginCount: 1
-      }
     } finally {
       isLoading.value = false
     }

@@ -40,7 +40,9 @@ export function addDownloadJob(taskId: string): void {
   
   if (!queue) {
     console.log(`[Memory Queue] Job added: ${taskId}`)
-    startMemoryDownload(taskId)
+    startMemoryDownload(taskId).catch(err => {
+      console.error(`[Memory Queue] Unexpected error: ${err.message}`)
+    })
     return
   }
 
@@ -61,12 +63,13 @@ async function startMemoryDownload(taskId: string): Promise<void> {
   }
 
   const destPath = getDownloadPath(task.filename)
+  console.log(`[Memory Download] Starting: ${task.source_url} -> ${destPath}`)
 
   try {
     await downloadFile(taskId, task.source_url, destPath)
-    console.log(`[Memory Queue] Download completed: ${taskId}`)
+    console.log(`[Memory Download] Completed: ${taskId}`)
   } catch (error: any) {
-    console.error(`[Memory Queue] Download failed: ${taskId}`, error.message)
+    console.error(`[Memory Download] Failed: ${taskId}`, error.message)
     const currentTask = getTaskById(taskId)
     if (currentTask && currentTask.retry_count < currentTask.max_retries) {
       incrementRetryCount(taskId)
@@ -109,6 +112,8 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     updateTaskFilesize(taskId, filesize)
   }
 
+  console.log(`[Download] Starting download: ${sourceUrl} -> ${destPath}`)
+
   const downloadResponse = await axios({
     method: 'get',
     url: sourceUrl,
@@ -116,43 +121,51 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     timeout: 300000
   })
 
+  console.log(`[Download] Response received, stream type: ${typeof downloadResponse.data}`)
+
   const writeStream = createWriteStream(destPath)
   let downloaded = 0
   let lastProgressTime = Date.now()
   let lastDownloaded = 0
 
+  downloadResponse.data.on('data', (chunk: Buffer) => {
+    downloaded += chunk.length
+    writeStream.write(chunk)
+
+    const now = Date.now()
+    const elapsed = now - lastProgressTime
+
+    if (elapsed >= PROGRESS_THROTTLE_MS) {
+      const speed = Math.floor((downloaded - lastDownloaded) / (elapsed / 1000))
+      updateTaskProgress(taskId, downloaded, filesize, speed)
+      lastProgressTime = now
+      lastDownloaded = downloaded
+    }
+  })
+
   return new Promise((resolve, reject) => {
-    downloadResponse.data.on('data', (chunk: Buffer) => {
-      downloaded += chunk.length
-      writeStream.write(chunk)
-
-      const now = Date.now()
-      const elapsed = now - lastProgressTime
-
-      if (elapsed >= PROGRESS_THROTTLE_MS) {
-        const speed = Math.floor((downloaded - lastDownloaded) / (elapsed / 1000))
-        updateTaskProgress(taskId, downloaded, filesize, speed)
-        lastProgressTime = now
-        lastDownloaded = downloaded
-      }
-    })
-
-    downloadResponse.data.on('end', () => {
-      writeStream.end()
+    writeStream.on('finish', () => {
+      console.log(`[Download] Write finished, total: ${downloaded}`)
       updateTaskProgress(taskId, downloaded, filesize, 0)
       updateTaskStatus(taskId, 'completed', undefined, destPath)
       resolve()
     })
 
+    writeStream.on('error', (err) => {
+      console.error(`[Download] Write stream error: ${err.message}`)
+      updateTaskStatus(taskId, 'failed', err.message)
+      reject(err)
+    })
+
     downloadResponse.data.on('error', (err) => {
+      console.error(`[Download] Response stream error: ${err.message}`)
       writeStream.end()
       updateTaskStatus(taskId, 'failed', err.message)
       reject(err)
     })
 
-    writeStream.on('error', (err) => {
-      updateTaskStatus(taskId, 'failed', err.message)
-      reject(err)
+    downloadResponse.data.on('end', () => {
+      console.log(`[Download] Response stream ended`)
     })
   })
 }

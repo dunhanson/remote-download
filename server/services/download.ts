@@ -126,18 +126,21 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
   const writeStream = createWriteStream(destPath)
   let downloaded = 0
-  let lastProgressTime = Date.now()
-  let lastDownloaded = 0
 
   downloadResponse.data.on('data', (chunk: Buffer) => {
     downloaded += chunk.length
   })
 
+  downloadResponse.data.pipe(writeStream)
+
   return new Promise((resolve, reject) => {
-    downloadResponse.data.pipe(writeStream)
-    
+    downloadResponse.data.on('end', () => {
+      console.log(`[Download] Response stream ended, downloaded: ${downloaded}`)
+      downloadResponse.data.destroy()
+    })
+
     writeStream.on('finish', () => {
-      console.log(`[Download] Download completed: ${downloaded} bytes`)
+      console.log(`[Download] Write finished: ${downloaded} bytes`)
       updateTaskProgress(taskId, downloaded, filesize, 0)
       updateTaskStatus(taskId, 'completed', undefined, destPath)
       resolve()

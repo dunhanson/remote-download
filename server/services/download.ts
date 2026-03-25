@@ -2,6 +2,7 @@ import { Queue, Worker, Job } from 'bullmq'
 import axios from 'axios'
 import { createWriteStream, existsSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
+import { pipeline } from 'stream/promises'
 import { getTaskById, updateTaskStatus, updateTaskProgress, updateTaskFilesize, incrementRetryCount, resetTaskForRetry } from '../database/tasks'
 import type { ProgressData } from '../types'
 
@@ -130,45 +131,19 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
   downloadResponse.data.on('data', (chunk: Buffer) => {
     downloaded += chunk.length
-    writeStream.write(chunk)
-
-    const now = Date.now()
-    const elapsed = now - lastProgressTime
-
-    if (elapsed >= PROGRESS_THROTTLE_MS) {
-      const speed = Math.floor((downloaded - lastDownloaded) / (elapsed / 1000))
-      updateTaskProgress(taskId, downloaded, filesize, speed)
-      lastProgressTime = now
-      lastDownloaded = downloaded
-    }
   })
 
-  return new Promise((resolve, reject) => {
-    downloadResponse.data.on('end', () => {
-      console.log(`[Download] Response stream ended`)
-      writeStream.end()
-    })
-
-    downloadResponse.data.on('error', (err) => {
-      console.error(`[Download] Response stream error: ${err.message}`)
-      writeStream.end()
-      updateTaskStatus(taskId, 'failed', err.message)
-      reject(err)
-    })
-
-    writeStream.on('finish', () => {
-      console.log(`[Download] Write finished, total: ${downloaded}`)
-      updateTaskProgress(taskId, downloaded, filesize, 0)
-      updateTaskStatus(taskId, 'completed', undefined, destPath)
-      resolve()
-    })
-
-    writeStream.on('error', (err) => {
-      console.error(`[Download] Write stream error: ${err.message}`)
-      updateTaskStatus(taskId, 'failed', err.message)
-      reject(err)
-    })
-  })
+  try {
+    await pipeline(downloadResponse.data, writeStream)
+    console.log(`[Download] Pipeline completed, total: ${downloaded}`)
+    updateTaskProgress(taskId, downloaded, filesize, 0)
+    updateTaskStatus(taskId, 'completed', undefined, destPath)
+  } catch (err: any) {
+    console.error(`[Download] Pipeline error: ${err.message}`)
+    writeStream.end()
+    updateTaskStatus(taskId, 'failed', err.message)
+    throw err
+  }
 }
 
 export function startWorker(): void {

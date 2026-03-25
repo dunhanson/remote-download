@@ -133,7 +133,8 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
       response.on('data', (chunk: Buffer) => {
         downloaded += chunk.length
-        writeStream.write(chunk)
+        const written = writeStream.write(chunk)
+        console.log(`[Download] Data event: chunk=${chunk.length}, total=${downloaded}, written=${written}`)
 
         const now = Date.now()
         const elapsed = now - lastProgressTime

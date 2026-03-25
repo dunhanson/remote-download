@@ -104,8 +104,6 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
   updateTaskStatus(taskId, 'downloading')
 
-  console.log(`[Download] Starting HEAD request: ${sourceUrl}`)
-
   const headResponse = await axios({
     method: 'head',
     url: sourceUrl,
@@ -116,6 +114,81 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
   if (filesize > 0) {
     updateTaskFilesize(taskId, filesize)
   }
+
+  console.log(`[Download] Starting download: ${sourceUrl} -> ${destPath}, filesize: ${filesize}`)
+
+  return new Promise((resolve, reject) => {
+    const protocol = sourceUrl.startsWith('https') ? https : http
+    let downloaded = 0
+
+    const req = protocol.get(sourceUrl, {
+      timeout: 300000,
+      headers: { 'Connection': 'close' }
+    }, (response) => {
+      const writeStream = createWriteStream(destPath)
+      let lastProgressTime = Date.now()
+      let lastDownloaded = 0
+
+      response.on('data', (chunk: Buffer) => {
+        downloaded += chunk.length
+        writeStream.write(chunk)
+
+        const now = Date.now()
+        const elapsed = now - lastProgressTime
+
+        if (elapsed >= PROGRESS_THROTTLE_MS) {
+          const speed = Math.floor((downloaded - lastDownloaded) / (elapsed / 1000))
+          updateTaskProgress(taskId, downloaded, filesize, speed)
+          lastProgressTime = now
+          lastDownloaded = downloaded
+        }
+      })
+
+      response.on('end', () => {
+        console.log(`[Download] Response end, downloaded: ${downloaded}`)
+        updateTaskProgress(taskId, downloaded, filesize, 0)
+        writeStream.end()
+      })
+
+      response.on('close', () => {
+        console.log(`[Download] Response closed, downloaded: ${downloaded}`)
+      })
+
+      writeStream.on('finish', () => {
+        console.log(`[Download] Write finished, downloaded: ${downloaded}`)
+        updateTaskProgress(taskId, downloaded, filesize, 0)
+        updateTaskStatus(taskId, 'completed', undefined, destPath)
+        resolve()
+      })
+
+      response.on('error', (err) => {
+        console.error(`[Download] Response error: ${err.message}`)
+        writeStream.end()
+        updateTaskStatus(taskId, 'failed', err.message)
+        reject(err)
+      })
+
+      writeStream.on('error', (err) => {
+        console.error(`[Download] Write error: ${err.message}`)
+        updateTaskStatus(taskId, 'failed', err.message)
+        reject(err)
+      })
+    })
+
+    req.on('error', (err) => {
+      console.error(`[Download] Request error: ${err.message}`)
+      updateTaskStatus(taskId, 'failed', err.message)
+      reject(err)
+    })
+
+    req.on('timeout', () => {
+      console.error(`[Download] Request timeout`)
+      req.destroy()
+      updateTaskStatus(taskId, 'failed', 'Request timeout')
+      reject(new Error('Request timeout'))
+    })
+  })
+}
 
   console.log(`[Download] Starting download: ${sourceUrl} -> ${destPath}, filesize: ${filesize}`)
 

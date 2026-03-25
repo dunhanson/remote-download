@@ -144,7 +144,11 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
       })
 
       response.on('end', () => {
-        console.log(`[Download] Download completed: ${downloaded} bytes`)
+        console.log(`[Download] Response end event, downloaded: ${downloaded}`)
+      })
+
+      response.on('close', () => {
+        console.log(`[Download] Response closed, downloaded: ${downloaded}`)
         writeStream.end()
         updateTaskProgress(taskId, downloaded, filesize, 0)
         updateTaskStatus(taskId, 'completed', undefined, destPath)

@@ -5,86 +5,58 @@ function getUserIdFromHeader(event: any): string | null {
   return userId || null
 }
 
-export default defineEventHandler({
-  async get(event) {
-    const userId = getUserIdFromHeader(event)
-    const taskId = getRouterParam(event, 'id')
+export default defineEventHandler(async (event) => {
+  const method = getMethod(event)
+  const userId = getUserIdFromHeader(event)
+  const taskId = getRouterParam(event, 'id')
 
-    if (!userId) {
-      throw createError({
-        statusCode: 401,
-        message: '请先创建用户'
-      })
-    }
+  if (!userId) {
+    throw createError({
+      statusCode: 401,
+      message: '请先创建用户'
+    })
+  }
 
-    if (!taskId) {
-      throw createError({
-        statusCode: 400,
-        message: '任务 ID 不能为空'
-      })
-    }
+  if (!taskId) {
+    throw createError({
+      statusCode: 400,
+      message: '任务 ID 不能为空'
+    })
+  }
 
-    const task = getTaskById(taskId)
+  const task = getTaskById(taskId)
 
-    if (!task) {
-      throw createError({
-        statusCode: 404,
-        message: '任务不存在'
-      })
-    }
+  if (!task) {
+    throw createError({
+      statusCode: 404,
+      message: '任务不存在'
+    })
+  }
 
-    if (task.user_id !== userId) {
-      throw createError({
-        statusCode: 403,
-        message: '无权访问该任务'
-      })
-    }
+  if (task.user_id !== userId) {
+    throw createError({
+      statusCode: 403,
+      message: '无权访问该任务'
+    })
+  }
 
+  if (method === 'GET') {
     return {
       success: true,
       data: taskToClientTask(task)
     }
-  },
+  }
 
-  async delete(event) {
-    const userId = getUserIdFromHeader(event)
-    const taskId = getRouterParam(event, 'id')
-
-    if (!userId) {
-      throw createError({
-        statusCode: 401,
-        message: '请先创建用户'
-      })
-    }
-
-    if (!taskId) {
-      throw createError({
-        statusCode: 400,
-        message: '任务 ID 不能为空'
-      })
-    }
-
-    const task = getTaskById(taskId)
-
-    if (!task) {
-      throw createError({
-        statusCode: 404,
-        message: '任务不存在'
-      })
-    }
-
-    if (task.user_id !== userId) {
-      throw createError({
-        statusCode: 403,
-        message: '无权删除该任务'
-      })
-    }
-
+  if (method === 'DELETE') {
     deleteTask(taskId)
-
     return {
       success: true,
       data: null
     }
   }
+
+  throw createError({
+    statusCode: 405,
+    message: 'Method not allowed'
+  })
 })

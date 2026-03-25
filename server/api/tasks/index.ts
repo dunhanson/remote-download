@@ -18,37 +18,28 @@ function getUserIdFromHeader(event: any): string | null {
   return userId || null
 }
 
-export default defineEventHandler({
-  async get(event) {
-    const userId = getUserIdFromHeader(event)
+export default defineEventHandler(async (event) => {
+  const method = getMethod(event)
+  const userId = getUserIdFromHeader(event)
 
-    if (!userId) {
-      throw createError({
-        statusCode: 401,
-        message: '请先创建用户'
-      })
-    }
+  if (!userId) {
+    throw createError({
+      statusCode: 401,
+      message: '请先创建用户'
+    })
+  }
 
+  if (method === 'GET') {
     const tasks = getTasksByUserId(userId)
-
     return {
       success: true,
       data: {
         tasks: tasks.map(taskToClientTask)
       }
     }
-  },
+  }
 
-  async post(event) {
-    const userId = getUserIdFromHeader(event)
-
-    if (!userId) {
-      throw createError({
-        statusCode: 401,
-        message: '请先创建用户'
-      })
-    }
-
+  if (method === 'POST') {
     const body = await readBody<{ urls: string[] }>(event)
 
     if (!body.urls || !Array.isArray(body.urls) || body.urls.length === 0) {
@@ -79,4 +70,9 @@ export default defineEventHandler({
       }
     }
   }
+
+  throw createError({
+    statusCode: 405,
+    message: 'Method not allowed'
+  })
 })

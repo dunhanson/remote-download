@@ -9,6 +9,8 @@ export default defineNuxtConfig({
 
   srcDir: 'app/',
 
+  serverDir: './server',
+
   app: {
     head: {
       title: '文件离线下载服务',

@@ -162,6 +162,13 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
         resolve()
       })
 
+      setTimeout(() => {
+        if (downloaded > 0 && filesize > 0 && downloaded >= filesize) {
+          console.log(`[Download] Timeout check: download completed`)
+          writeStream.end()
+        }
+      }, 2000)
+
       response.on('error', (err) => {
         console.error(`[Download] Response error: ${err.message}`)
         writeStream.end()

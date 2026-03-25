@@ -123,7 +123,10 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     const protocol = sourceUrl.startsWith('https') ? https : http
     let downloaded = 0
 
-    const req = protocol.get(sourceUrl, { timeout: 300000 }, (response) => {
+    const req = protocol.get(sourceUrl, {
+      timeout: 300000,
+      headers: { 'Connection': 'close' }
+    }, (response) => {
       const writeStream = createWriteStream(destPath)
       let lastProgressTime = Date.now()
       let lastDownloaded = 0
@@ -144,7 +147,7 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
       })
 
       response.on('end', () => {
-        console.log(`[Download] Response end, calling writeStream.end(), downloaded: ${downloaded}`)
+        console.log(`[Download] Response end, downloaded: ${downloaded}`)
         writeStream.end()
       })
 

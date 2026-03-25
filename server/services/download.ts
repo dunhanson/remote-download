@@ -144,6 +144,18 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
   })
 
   return new Promise((resolve, reject) => {
+    downloadResponse.data.on('end', () => {
+      console.log(`[Download] Response stream ended`)
+      writeStream.end()
+    })
+
+    downloadResponse.data.on('error', (err) => {
+      console.error(`[Download] Response stream error: ${err.message}`)
+      writeStream.end()
+      updateTaskStatus(taskId, 'failed', err.message)
+      reject(err)
+    })
+
     writeStream.on('finish', () => {
       console.log(`[Download] Write finished, total: ${downloaded}`)
       updateTaskProgress(taskId, downloaded, filesize, 0)
@@ -155,17 +167,6 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
       console.error(`[Download] Write stream error: ${err.message}`)
       updateTaskStatus(taskId, 'failed', err.message)
       reject(err)
-    })
-
-    downloadResponse.data.on('error', (err) => {
-      console.error(`[Download] Response stream error: ${err.message}`)
-      writeStream.end()
-      updateTaskStatus(taskId, 'failed', err.message)
-      reject(err)
-    })
-
-    downloadResponse.data.on('end', () => {
-      console.log(`[Download] Response stream ended`)
     })
   })
 }

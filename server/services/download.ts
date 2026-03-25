@@ -122,7 +122,7 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     timeout: 300000
   })
 
-  console.log(`[Download] Response received, stream type: ${typeof downloadResponse.data}`)
+  console.log(`[Download] Response received`)
 
   const writeStream = createWriteStream(destPath)
   let downloaded = 0
@@ -133,17 +133,28 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     downloaded += chunk.length
   })
 
-  try {
-    await pipeline(downloadResponse.data, writeStream)
-    console.log(`[Download] Pipeline completed, total: ${downloaded}`)
-    updateTaskProgress(taskId, downloaded, filesize, 0)
-    updateTaskStatus(taskId, 'completed', undefined, destPath)
-  } catch (err: any) {
-    console.error(`[Download] Pipeline error: ${err.message}`)
-    writeStream.end()
-    updateTaskStatus(taskId, 'failed', err.message)
-    throw err
-  }
+  return new Promise((resolve, reject) => {
+    downloadResponse.data.pipe(writeStream)
+    
+    writeStream.on('finish', () => {
+      console.log(`[Download] Download completed: ${downloaded} bytes`)
+      updateTaskProgress(taskId, downloaded, filesize, 0)
+      updateTaskStatus(taskId, 'completed', undefined, destPath)
+      resolve()
+    })
+
+    writeStream.on('error', (err) => {
+      console.error(`[Download] Write error: ${err.message}`)
+      updateTaskStatus(taskId, 'failed', err.message)
+      reject(err)
+    })
+
+    downloadResponse.data.on('error', (err) => {
+      console.error(`[Download] Read error: ${err.message}`)
+      updateTaskStatus(taskId, 'failed', err.message)
+      reject(err)
+    })
+  })
 }
 
 export function startWorker(): void {

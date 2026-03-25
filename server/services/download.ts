@@ -133,8 +133,7 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
       response.on('data', (chunk: Buffer) => {
         downloaded += chunk.length
-        const written = writeStream.write(chunk)
-        console.log(`[Download] Data event: chunk=${chunk.length}, total=${downloaded}, written=${written}`)
+        writeStream.write(chunk)
 
         const now = Date.now()
         const elapsed = now - lastProgressTime
@@ -149,6 +148,7 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
 
       response.on('end', () => {
         console.log(`[Download] Response end, downloaded: ${downloaded}`)
+        updateTaskProgress(taskId, downloaded, filesize, 0)
         writeStream.end()
       })
 
@@ -162,6 +162,35 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
         updateTaskStatus(taskId, 'completed', undefined, destPath)
         resolve()
       })
+
+      response.on('error', (err) => {
+        console.error(`[Download] Response error: ${err.message}`)
+        writeStream.end()
+        updateTaskStatus(taskId, 'failed', err.message)
+        reject(err)
+      })
+
+      writeStream.on('error', (err) => {
+        console.error(`[Download] Write error: ${err.message}`)
+        updateTaskStatus(taskId, 'failed', err.message)
+        reject(err)
+      })
+    })
+
+    req.on('error', (err) => {
+      console.error(`[Download] Request error: ${err.message}`)
+      updateTaskStatus(taskId, 'failed', err.message)
+      reject(err)
+    })
+
+    req.on('timeout', () => {
+      console.error(`[Download] Request timeout`)
+      req.destroy()
+      updateTaskStatus(taskId, 'failed', 'Request timeout')
+      reject(new Error('Request timeout'))
+    })
+  })
+}
 
       setTimeout(() => {
         if (downloaded > 0 && filesize > 0 && downloaded >= filesize) {

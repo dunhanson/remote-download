@@ -121,41 +121,37 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
   let lastProgressTime = Date.now()
   let lastDownloaded = 0
 
-  downloadResponse.data.on('data', (chunk: Buffer) => {
-    downloaded += chunk.length
-    writeStream.write(chunk)
-
-    const now = Date.now()
-    const elapsed = now - lastProgressTime
-
-    if (elapsed >= PROGRESS_THROTTLE_MS) {
-      const speed = Math.floor((downloaded - lastDownloaded) / (elapsed / 1000))
-      updateTaskProgress(taskId, downloaded, filesize, speed)
-      lastProgressTime = now
-      lastDownloaded = downloaded
-    }
-  })
-
-  downloadResponse.data.on('end', () => {
-    writeStream.end()
-    updateTaskProgress(taskId, downloaded, filesize, 0)
-    updateTaskStatus(taskId, 'completed', undefined, destPath)
-  })
-
-  downloadResponse.data.on('error', (err) => {
-    writeStream.end()
-    updateTaskStatus(taskId, 'failed', err.message)
-  })
-
-  writeStream.on('error', (err) => {
-    updateTaskStatus(taskId, 'failed', err.message)
-  })
-
   return new Promise((resolve, reject) => {
-    writeStream.on('finish', () => {
+    downloadResponse.data.on('data', (chunk: Buffer) => {
+      downloaded += chunk.length
+      writeStream.write(chunk)
+
+      const now = Date.now()
+      const elapsed = now - lastProgressTime
+
+      if (elapsed >= PROGRESS_THROTTLE_MS) {
+        const speed = Math.floor((downloaded - lastDownloaded) / (elapsed / 1000))
+        updateTaskProgress(taskId, downloaded, filesize, speed)
+        lastProgressTime = now
+        lastDownloaded = downloaded
+      }
+    })
+
+    downloadResponse.data.on('end', () => {
+      writeStream.end()
+      updateTaskProgress(taskId, downloaded, filesize, 0)
+      updateTaskStatus(taskId, 'completed', undefined, destPath)
       resolve()
     })
+
+    downloadResponse.data.on('error', (err) => {
+      writeStream.end()
+      updateTaskStatus(taskId, 'failed', err.message)
+      reject(err)
+    })
+
     writeStream.on('error', (err) => {
+      updateTaskStatus(taskId, 'failed', err.message)
       reject(err)
     })
   })

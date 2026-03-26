@@ -71,14 +71,13 @@ export function getTasksByUserId(userId: string, limit: number = 10): Task[] {
 export function updateTaskProgress(taskId: string, downloaded: number, filesize: number, speed: number): void {
   const db = getDatabase()
   const now = Math.floor(Date.now() / 1000)
-  const percent = filesize > 0 ? Math.floor((downloaded / filesize) * 100) : 0
 
   const stmt = db.prepare(`
-    UPDATE tasks SET downloaded = ?, filesize = ?, speed = ?, percent = ?, updated_at = ?
+    UPDATE tasks SET downloaded = ?, filesize = ?, speed = ?, updated_at = ?
     WHERE id = ?
   `)
 
-  stmt.run(downloaded, filesize, speed, percent, now, taskId)
+  stmt.run(downloaded, filesize, speed, now, taskId)
 }
 
 export function updateTaskStatus(

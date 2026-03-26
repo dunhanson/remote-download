@@ -109,7 +109,7 @@ const getFileNameFromUrl = (url: string): string => {
     </div>
 
     <!-- 操作按钮 -->
-    <div v-if="task.status !== 'completed'" class="task-actions">
+    <div class="task-actions">
       <button v-if="task.status === 'failed'" class="btn btn-primary" @click="emit('retry', task.id)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <polyline points="23 4 23 10 17 10" />

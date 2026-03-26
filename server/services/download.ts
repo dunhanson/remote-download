@@ -118,6 +118,7 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
   return new Promise((resolve, reject) => {
     const protocol = sourceUrl.startsWith('https') ? https : http
     let downloaded = 0
+    let isCompleted = false // 防止重复处理完成事件
 
     const req = protocol.get(sourceUrl, {
       timeout: 300000,
@@ -143,16 +144,21 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
       })
 
       response.on('end', () => {
+        if (isCompleted) return
         console.log(`[Download] Response end, downloaded: ${downloaded}`)
         updateTaskProgress(taskId, downloaded, filesize, 0)
         writeStream.end()
       })
 
       response.on('close', () => {
+        // 下载完成后忽略 close 事件，避免重复处理
+        if (isCompleted) return
         console.log(`[Download] Response closed, downloaded: ${downloaded}`)
       })
 
       writeStream.on('finish', () => {
+        if (isCompleted) return
+        isCompleted = true
         console.log(`[Download] Write finished, downloaded: ${downloaded}`)
         updateTaskProgress(taskId, downloaded, filesize, 0)
         updateTaskStatus(taskId, 'completed', undefined, destPath)
@@ -160,6 +166,8 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
       })
 
       response.on('error', (err) => {
+        if (isCompleted) return
+        isCompleted = true
         console.error(`[Download] Response error: ${err.message}`)
         writeStream.end()
         updateTaskStatus(taskId, 'failed', err.message)
@@ -167,6 +175,8 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
       })
 
       writeStream.on('error', (err) => {
+        if (isCompleted) return
+        isCompleted = true
         console.error(`[Download] Write error: ${err.message}`)
         updateTaskStatus(taskId, 'failed', err.message)
         reject(err)
@@ -174,12 +184,16 @@ async function downloadFile(taskId: string, sourceUrl: string, destPath: string)
     })
 
     req.on('error', (err) => {
+      if (isCompleted) return
+      isCompleted = true
       console.error(`[Download] Request error: ${err.message}`)
       updateTaskStatus(taskId, 'failed', err.message)
       reject(err)
     })
 
     req.on('timeout', () => {
+      if (isCompleted) return
+      isCompleted = true
       console.error(`[Download] Request timeout`)
       req.destroy()
       updateTaskStatus(taskId, 'failed', 'Request timeout')

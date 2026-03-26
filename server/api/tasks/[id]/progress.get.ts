@@ -2,7 +2,8 @@ import { getTaskById } from '../../../database/tasks'
 import type { ProgressData } from '../../../types'
 
 function getUserIdFromHeader(event: any): string | null {
-  const userId = getHeader(event, 'x-user-id')
+  // 支持从 header 或 query string 获取 userId（EventSource 不支持自定义 headers）
+  const userId = getHeader(event, 'x-user-id') || getQuery(event).userId as string
   return userId || null
 }
 

@@ -113,10 +113,11 @@ export function useTasks() {
     }
   }
 
-  const connectProgress = (taskId: string, _userId: string) => {
+  const connectProgress = (taskId: string, userId: string) => {
     if (eventSources.has(taskId)) return
-    
-    const eventSource = new EventSource(`/api/tasks/${taskId}/progress`, {
+
+    // EventSource 不支持自定义 headers，通过 query string 传递 userId
+    const eventSource = new EventSource(`/api/tasks/${taskId}/progress?userId=${encodeURIComponent(userId)}`, {
       withCredentials: true
     })
 

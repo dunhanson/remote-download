@@ -81,9 +81,15 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
-  const rootPath = config.public.downloadRootPath as string || join(process.cwd(), 'storage', 'downloads')
-  const relativePath = config.public.downloadRelativePath as string || 'files'
-  const filePath = join(rootPath, relativePath, task.filename)
+  // 优先使用环境变量，然后是配置，最后是默认路径
+  const rootPath = process.env.DOWNLOAD_ROOT_PATH
+    || (config.public.downloadRootPath as string)
+    || join(process.cwd(), 'storage', 'downloads')
+  const relativePath = process.env.DOWNLOAD_RELATIVE_PATH
+    || (config.public.downloadRelativePath as string)
+    || 'files'
+  // 文件保存格式为 {taskId}_{originalFilename}，直接使用 filename 参数
+  const filePath = join(rootPath, relativePath, filename)
 
   if (!existsSync(filePath)) {
     throw createError({

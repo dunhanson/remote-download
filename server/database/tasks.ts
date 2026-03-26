@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { getDatabase } from './index'
 import type { Task, TaskStatus } from '../types'
+import { generateDownloadSignature } from '../utils/signature'
 
 export interface CreateTaskInput {
   userId: string
@@ -140,8 +141,8 @@ export function deleteTask(taskId: string): boolean {
   return result.changes > 0
 }
 
-export function taskToClientTask(task: Task) {
-  return {
+export function taskToClientTask(task: Task, userId?: string, origin?: string) {
+  const result: any = {
     id: task.id,
     sourceUrl: task.source_url,
     filename: task.filename,
@@ -156,4 +157,13 @@ export function taskToClientTask(task: Task) {
     updatedAt: task.updated_at,
     completedAt: task.completed_at
   }
+
+  // 如果任务完成且有 userId 和 origin，生成下载链接
+  if (task.status === 'completed' && userId && origin) {
+    const { signature, expiresAt } = generateDownloadSignature(userId)
+    const downloadUrl = `${origin}/files/${task.id}_${task.filename}?signature=${signature}&expires=${expiresAt}&userId=${userId}`
+    result.downloadUrl = downloadUrl
+  }
+
+  return result
 }

@@ -29,10 +29,11 @@ const formatSpeed = (bytesPerSecond: number): string => {
 }
 
 // 复制下载链接
+const { showToast } = useToast()
 const copyLink = async (url: string) => {
   try {
     await navigator.clipboard.writeText(url)
-    alert('链接已复制')
+    showToast('链接已复制', 'success')
   } catch {
     // Fallback
     const input = document.createElement('input')
@@ -41,7 +42,7 @@ const copyLink = async (url: string) => {
     input.select()
     document.execCommand('copy')
     document.body.removeChild(input)
-    alert('链接已复制')
+    showToast('链接已复制', 'success')
   }
 }
 

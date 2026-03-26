@@ -498,8 +498,9 @@ body {
 /* Toast notifications */
 .toast {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 12px 20px;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -510,7 +511,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  animation: slideIn 0.3s ease;
+  animation: slideDown 0.3s ease;
 }
 
 .toast svg {
@@ -524,7 +525,7 @@ body {
 .toast-error svg { stroke: #ef4444; }
 .toast-info svg { stroke: #3b82f6; }
 
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes slideDown {
+  from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }

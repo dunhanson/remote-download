@@ -31,10 +31,11 @@ export default defineEventHandler(async (event) => {
 
   if (method === 'GET') {
     const tasks = getTasksByUserId(userId)
+    const origin = getHeader(event, 'origin') || `http://${getHeader(event, 'host')}`
     return {
       success: true,
       data: {
-        tasks: tasks.map(taskToClientTask)
+        tasks: tasks.map(task => taskToClientTask(task, userId, origin))
       }
     }
   }
@@ -66,7 +67,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: {
-        tasks: createdTasks.map(taskToClientTask)
+        tasks: createdTasks.map(task => taskToClientTask(task, userId, `http://${getHeader(event, 'host')}`))
       }
     }
   }

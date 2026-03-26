@@ -63,7 +63,7 @@ async function startMemoryDownload(taskId: string): Promise<void> {
     return
   }
 
-  const destPath = getDownloadPath(task.filename)
+  const destPath = getDownloadPath(task.id, task.filename)
   console.log(`[Memory Download] Starting: ${task.source_url} -> ${destPath}`)
 
   try {
@@ -79,13 +79,13 @@ async function startMemoryDownload(taskId: string): Promise<void> {
   }
 }
 
-function getDownloadPath(filename: string): string {
+function getDownloadPath(taskId: string, filename: string): string {
   const config = useRuntimeConfig()
-  const rootPath = process.env.DOWNLOAD_ROOT_PATH 
-    || (config.public.downloadRootPath as string) 
+  const rootPath = process.env.DOWNLOAD_ROOT_PATH
+    || (config.public.downloadRootPath as string)
     || join(process.cwd(), 'storage', 'downloads')
-  const relativePath = process.env.DOWNLOAD_RELATIVE_PATH 
-    || (config.public.downloadRelativePath as string) 
+  const relativePath = process.env.DOWNLOAD_RELATIVE_PATH
+    || (config.public.downloadRelativePath as string)
     || 'files'
   const dir = join(rootPath, relativePath)
 
@@ -93,7 +93,9 @@ function getDownloadPath(filename: string): string {
     mkdirSync(dir, { recursive: true })
   }
 
-  return join(dir, filename)
+  // 使用 taskId_filename 格式保存文件，与下载路由解析逻辑一致
+  const storedFilename = `${taskId}_${filename}`
+  return join(dir, storedFilename)
 }
 
 async function downloadFile(taskId: string, sourceUrl: string, destPath: string): Promise<void> {
@@ -219,7 +221,7 @@ export function startWorker(): void {
       throw new Error('Task not found')
     }
 
-    const destPath = getDownloadPath(task.filename)
+    const destPath = getDownloadPath(task.id, task.filename)
 
     try {
       await downloadFile(taskId, task.source_url, destPath)

@@ -41,9 +41,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'GET') {
+    const origin = getHeader(event, 'origin') || `http://${getHeader(event, 'host')}`
     return {
       success: true,
-      data: taskToClientTask(task)
+      data: taskToClientTask(task, userId, origin)
     }
   }
 
